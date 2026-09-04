@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'registrar_toma_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -135,7 +137,20 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 2.5,
                   children: [
-                    _buildActionButton('Registrar Toma', () {}),
+                    _buildActionButton('Registrar Toma', () async {
+                      // Esperamos el resultado de la pantalla de registro
+                      final resultado = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const RegistrarTomaPage()),
+                      );
+
+                      // Si recibimos datos válidos, actualizamos la pantalla
+                      if (resultado != null && resultado is Map<String, dynamic>) {
+                        setState(() {
+                          _tomasHoy.add(resultado);
+                        });
+                      }
+                    }),
                     _buildActionButton('Ver Tratamiento', () {}),
                     _buildActionButton('Biomarcadores', () {}),
                     _buildActionButton('Editar Perfil', () {}),
@@ -194,7 +209,32 @@ class _HomePageState extends State<HomePage> {
                           ),
                         )
                       : Column(
-                          children: _tomasHoy.map((toma) => Text(toma.toString())).toList(),
+                          children: _tomasHoy.map((toma) {
+                            return Card(
+                              elevation: 0,
+                              color: const Color(0xFFF8FAFC),
+                              margin: const EdgeInsets.only(bottom: 8.0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                              ),
+                              child: ListTile(
+                                leading: const Icon(Icons.medication, color: Color(0xFF1E7B7D), size: 32),
+                                title: Text(
+                                  '${toma['medicamento']} - ${toma['dosis']}', 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B3B5A))
+                                ),
+                                subtitle: Text(
+                                  toma['nota'].toString().isNotEmpty ? toma['nota'] : 'Sin notas adicionales',
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                trailing: Text(
+                                  toma['hora'], 
+                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
+                                ),
+                              ),
+                            );
+                          }).toList(),
                         ),
                 ),
               ],
