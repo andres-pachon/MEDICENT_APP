@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 // IMPORTANTE: Ajusta estas rutas según la ubicación exacta de tus archivos
 import 'home_page.dart';
+import 'tratamiento_page.dart'; // <--- Importamos la página de tratamiento para leer la variable global
 import '../../../auth/presentation/screens/login_page.dart';
 import '../../../auth/presentation/screens/register_page.dart';
 import '../../../auth/presentation/screens/landing_page.dart';
@@ -19,13 +20,6 @@ class _RegistrarTomaPageState extends State<RegistrarTomaPage> {
   final TextEditingController _dosisController = TextEditingController();
   final TextEditingController _notaController = TextEditingController();
   TimeOfDay? _selectedTime;
-
-  final List<String> _medicamentosEjemplo = [
-    'Paracetamol 500mg',
-    'Ibuprofeno 400mg',
-    'Amoxicilina 875mg',
-    'Omeprazol 20mg'
-  ];
 
   Future<void> _selectTime(BuildContext context) async {
     final TimeOfDay? picked = await showTimePicker(
@@ -67,7 +61,7 @@ class _RegistrarTomaPageState extends State<RegistrarTomaPage> {
             child: const Text('Dashboard', style: TextStyle(color: Colors.white))
           ),
           TextButton(
-            onPressed: () {},
+            onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TratamientoPage())),
             child: const Text('Tratamiento', style: TextStyle(color: Colors.white))
           ),
           TextButton(
@@ -107,7 +101,7 @@ class _RegistrarTomaPageState extends State<RegistrarTomaPage> {
                         ),
                         const SizedBox(height: 40),
 
-                        // Fila: Medicamento
+                        // Fila: Medicamento conectada a la variable global
                         Row(
                           children: [
                             const SizedBox(
@@ -124,14 +118,14 @@ class _RegistrarTomaPageState extends State<RegistrarTomaPage> {
                                   fillColor: Colors.white,
                                 ),
                                 value: _selectedMedicamento,
-                                hint: const Text('Seleccionar medicamento...'),
-                                items: _medicamentosEjemplo.map((String med) {
+                                hint: Text(medicamentosGlobales.isEmpty ? 'Primero agrega un tratamiento' : 'Seleccionar medicamento...'),
+                                items: medicamentosGlobales.map((med) {
                                   return DropdownMenuItem<String>(
-                                    value: med,
-                                    child: Text(med),
+                                    value: med['medicamento'],
+                                    child: Text(med['medicamento']),
                                   );
                                 }).toList(),
-                                onChanged: (String? newValue) {
+                                onChanged: medicamentosGlobales.isEmpty ? null : (String? newValue) {
                                   setState(() {
                                     _selectedMedicamento = newValue;
                                   });

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'registrar_toma_page.dart';
+import 'tratamiento_page.dart';
+import 'editar_perfil_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -151,9 +153,13 @@ class _HomePageState extends State<HomePage> {
                         });
                       }
                     }),
-                    _buildActionButton('Ver Tratamiento', () {}),
+                    _buildActionButton('Ver Tratamiento', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const TratamientoPage()));
+                    }),
                     _buildActionButton('Biomarcadores', () {}),
-                    _buildActionButton('Editar Perfil', () {}),
+                    _buildActionButton('Editar Perfil', () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const EditarPerfilPage()));
+                    }),
                   ],
                 ),
                 const SizedBox(height: 24),

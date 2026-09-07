@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+// IMPORTANTE: Ajusta esta ruta si completador_perfil_page.dart está en otra carpeta
+import '../../../home/presentation/screens/completar_perfil_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -76,9 +78,13 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Registro exitoso! Ahora puedes iniciar sesión.'), backgroundColor: Colors.green),
+          const SnackBar(content: Text('¡Registro exitoso! Por favor completa tu perfil.'), backgroundColor: Colors.green),
         );
-        Navigator.pop(context);
+        // REDIRECCIÓN A LA PANTALLA DE COMPLETAR PERFIL EN LUGAR DE CERRAR
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const CompletarPerfilPage()),
+        );
       }
     } catch (err) {
       setState(() => _errorMessage = 'No se pudo registrar. Verifica que el backend esté corriendo.');
