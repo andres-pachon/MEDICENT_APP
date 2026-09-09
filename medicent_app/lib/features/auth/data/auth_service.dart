@@ -12,7 +12,10 @@ class AuthService {
         Uri.parse('$baseUrl/api/login'),
         headers: {'Content-Type': 'application/json'},
         // 1. Revertido a 'email' tal como lo lee request.get_json() en Flask
-        body: jsonEncode({'email': email, 'password': password}),
+        body: jsonEncode({
+        'correo': email, // Cambia 'email' por 'correo'
+        'password': password // Verifica si el backend espera 'password' o 'contrasena'
+      }),
       );
 
       print('Status Code del servidor: ${response.statusCode}');
