@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'data/biomarcador.dart';
-import 'data/biomarcador_service.dart';
+import '../../data/models/biomarcador.dart';
+import '../../data/services/biomarcador_service.dart';
 
 const Color navDarkBlue = Color(0xFF1B3B5A);
 const Color btnTeal = Color(0xFF1E7B7D);
