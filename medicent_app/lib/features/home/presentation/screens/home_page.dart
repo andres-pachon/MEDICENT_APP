@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'registrar_toma_page.dart';
-import 'tratamiento_page.dart';
-import 'editar_perfil_page.dart';
-import 'biomarcadores_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import 'biomarcadores_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -53,7 +50,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.read<AuthProvider>();
+    // USAMOS WATCH para que la pantalla detecte cuando el nombre se actualice
+    final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -98,7 +96,8 @@ class _HomePageState extends State<HomePage> {
                           const Icon(Icons.account_circle, size: 40, color: Color(0xFF1D3B5E)),
                           const SizedBox(width: 12),
                           Text(
-                            'Bienvenido, usuario',
+                            // AQUÍ COLOCAMOS EL NOMBRE DINÁMICO
+                            'Bienvenido, ${authProvider.nombreUsuario ?? "usuario"}',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: navDarkBlue),
                           ),
                         ],
@@ -140,29 +139,15 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 2.5,
                   children: [
-                    _buildActionButton('Registrar Toma', () async {
-                      // Esperamos el resultado de la pantalla de registro
-                      final resultado = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const RegistrarTomaPage()),
-                      );
-
-                      // Si recibimos datos válidos, actualizamos la pantalla
-                      if (resultado != null && resultado is Map<String, dynamic>) {
-                        setState(() {
-                          _tomasHoy.add(resultado);
-                        });
-                      }
-                    }),
-                    _buildActionButton('Ver Tratamiento', () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const TratamientoPage()));
-                    }),
+                    _buildActionButton('Registrar Toma', () {}),
+                    _buildActionButton('Ver Tratamiento', () {}),
                     _buildActionButton('Biomarcadores', () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const BiomarcadoresPage()));
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const BiomarcadoresPage()),
+                      );
                     }),
-                    _buildActionButton('Editar Perfil', () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const EditarPerfilPage()));
-                    }),
+                    _buildActionButton('Editar Perfil', () {}),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -218,32 +203,7 @@ class _HomePageState extends State<HomePage> {
                           ),
                         )
                       : Column(
-                          children: _tomasHoy.map((toma) {
-                            return Card(
-                              elevation: 0,
-                              color: const Color(0xFFF8FAFC),
-                              margin: const EdgeInsets.only(bottom: 8.0),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: const BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                              child: ListTile(
-                                leading: const Icon(Icons.medication, color: Color(0xFF1E7B7D), size: 32),
-                                title: Text(
-                                  '${toma['medicamento']} - ${toma['dosis']}', 
-                                  style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1B3B5A))
-                                ),
-                                subtitle: Text(
-                                  toma['nota'].toString().isNotEmpty ? toma['nota'] : 'Sin notas adicionales',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                                trailing: Text(
-                                  toma['hora'], 
-                                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)
-                                ),
-                              ),
-                            );
-                          }).toList(),
+                          children: _tomasHoy.map((toma) => Text(toma.toString())).toList(),
                         ),
                 ),
               ],
