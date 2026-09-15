@@ -5,8 +5,6 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
-  
-  // URL de tu backend
   final String baseUrl = 'http://127.0.0.1:5000/api'; 
 
   String? _token;
@@ -15,15 +13,12 @@ class AuthProvider with ChangeNotifier {
   
   bool get isAuthenticated => _token != null;
 
-  // 1. VERIFICAR SESIÓN INICIAL (La función que le faltaba a main.dart)
   Future<void> checkAuthStatus() async {
     _token = await _storage.read(key: 'jwt_token');
     notifyListeners();
   }
 
-  // 2. INICIAR SESIÓN
   Future<bool> login(String correo, String password) async {
-    // Limpiamos errores anteriores
     errorMessage = null; 
     notifyListeners();
 
@@ -40,13 +35,19 @@ class AuthProvider with ChangeNotifier {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        // Guardamos el token
-        if (data.containsKey('token')) {
-          _token = data['token'];
+        
+        // --- AQUÍ ESTÁ LA CLAVE ---
+        // Buscamos la llave exactamente con el nombre que le pusimos en Python
+        final tokenRecibido = data['access_token'] ?? data['token'];
+        
+        // ESTE PRINT NOS DIRÁ SI FLUTTER SÍ ESTÁ RECIBIENDO EL TOKEN
+        print("🔑 Token recibido del servidor: $tokenRecibido"); 
+
+        if (tokenRecibido != null) {
+          _token = tokenRecibido;
           await _storage.write(key: 'jwt_token', value: _token);
         }
 
-        // Guardamos el nombre dinámico del usuario
         if (data['usuario'] != null && data['usuario']['nombre'] != null) {
           nombreUsuario = data['usuario']['nombre'];
         }
@@ -54,8 +55,7 @@ class AuthProvider with ChangeNotifier {
         notifyListeners(); 
         return true;
       } else {
-        // Guardamos el error (ej: contraseña incorrecta)
-        errorMessage = data['message'] ?? 'Error al iniciar sesión';
+        errorMessage = data['message'] ?? data['error'] ?? 'Error al iniciar sesión';
         notifyListeners();
         return false;
       }
@@ -66,7 +66,6 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
-  // 3. CERRAR SESIÓN
   Future<void> logout() async {
     _token = null;
     nombreUsuario = null;
