@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
-import 'perfil_cuidador_page.dart'; // <--- Nueva pantalla que crearemos ahora
+import 'perfil_cuidador_page.dart'; 
 import '../../../auth/presentation/screens/login_page.dart';
 import '../../../auth/presentation/screens/landing_page.dart';
 
@@ -12,11 +12,9 @@ class CompletarPerfilPage extends StatefulWidget {
 }
 
 class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
-  // 0: Selección, 1: Datos Personales (Paciente), 2: Datos Médicos (Paciente), 3: Datos Profesionales (Cuidador)
   int _pasoActual = 0; 
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores Paciente (Pasos 1 y 2)
   final TextEditingController _telefonoController = TextEditingController();
   final TextEditingController _edadController = TextEditingController();
   final TextEditingController _emergenciaController = TextEditingController();
@@ -24,7 +22,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
   final TextEditingController _alergiasController = TextEditingController();
   final TextEditingController _diagnosticoController = TextEditingController();
 
-  // Controladores Cuidador (Paso 3)
   final TextEditingController _docCuidadorController = TextEditingController();
   final TextEditingController _expCuidadorController = TextEditingController();
   final TextEditingController _telCuidadorController = TextEditingController();
@@ -85,7 +82,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
     );
   }
 
-  // --- VISTA 0: SELECCIÓN DE PERFIL ---
   Widget _buildSeleccionPerfil() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -95,7 +91,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
         const Text('Para darte la mejor experiencia, dinos quién eres:', style: TextStyle(fontSize: 16, color: Colors.black54)),
         const SizedBox(height: 30),
         
-        // Tarjeta Paciente
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -117,7 +112,7 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  onPressed: () => setState(() => _pasoActual = 1), // Avanza a Datos Paciente
+                  onPressed: () => setState(() => _pasoActual = 1),
                   child: const Text('Soy Paciente', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
@@ -126,7 +121,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
         ),
         const SizedBox(height: 20),
 
-        // Tarjeta Cuidador
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
@@ -148,7 +142,7 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                   ),
-                  onPressed: () => setState(() => _pasoActual = 3), // Avanza a Datos Cuidador
+                  onPressed: () => setState(() => _pasoActual = 3),
                   child: const Text('Soy Cuidador', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                 ),
               ),
@@ -159,7 +153,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
     );
   }
 
-  // --- VISTA 1: DATOS PERSONALES (PACIENTE) ---
   Widget _buildDatosPersonales() {
     return Form(
       key: _formKey,
@@ -170,16 +163,12 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
             child: Text('Datos Personales del Paciente', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: navDarkBlue)),
           ),
           const SizedBox(height: 30),
-          
           _buildLabel('TELÉFONO DE CONTACTO'),
           _buildTextField(_telefonoController, 'Ej: 3101234567', keyboardType: TextInputType.phone),
-
           _buildLabel('EDAD'),
           _buildTextField(_edadController, 'Ej: 45', keyboardType: TextInputType.number),
-
           _buildLabel('CONTACTO DE EMERGENCIA'),
           _buildTextField(_emergenciaController, 'Ej: Maria Perez'),
-
           const SizedBox(height: 40),
           SizedBox(
             width: double.infinity,
@@ -202,7 +191,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
     );
   }
 
-  // --- VISTA 2: DATOS MÉDICOS (PACIENTE) ---
   Widget _buildDatosMedicos() {
     return Form(
       key: _formKey, 
@@ -213,16 +201,12 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
             child: Text('Datos Médicos del Paciente', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: navDarkBlue)),
           ),
           const SizedBox(height: 30),
-          
           _buildLabel('EPS / ENTIDAD DE SALUD'),
           _buildTextField(_epsController, 'Ej: Sanitas'),
-
           _buildLabel('ALERGIAS CONOCIDAS'),
           _buildTextField(_alergiasController, 'Ej: Ninguna, Penicilina...'),
-
           _buildLabel('DIAGNÓSTICO O CONDICIÓN PRINCIPAL'),
           _buildTextField(_diagnosticoController, 'Ej: Diabetes Tipo 2'),
-
           const SizedBox(height: 40),
           SizedBox(
             width: double.infinity,
@@ -246,7 +230,6 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
     );
   }
 
-  // --- VISTA 3: DATOS PROFESIONALES (CUIDADOR) ---
   Widget _buildDatosCuidador() {
     return Form(
       key: _formKey,
@@ -257,16 +240,12 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
             child: Text('Datos Profesionales del Cuidador', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: navDarkBlue)),
           ),
           const SizedBox(height: 30),
-          
           _buildLabel('DOCUMENTO DE IDENTIDAD'),
           _buildTextField(_docCuidadorController, 'Número de cédula', keyboardType: TextInputType.number),
-
           _buildLabel('AÑOS DE EXPERIENCIA'),
           _buildTextField(_expCuidadorController, 'Ej: 3', keyboardType: TextInputType.number),
-
           _buildLabel('TELÉFONO CELULAR'),
           _buildTextField(_telCuidadorController, 'Número de contacto', keyboardType: TextInputType.phone),
-
           const SizedBox(height: 40),
           SizedBox(
             width: double.infinity,
@@ -304,46 +283,51 @@ class _CompletarPerfilPageState extends State<CompletarPerfilPage> {
           const SizedBox(width: 20),
         ],
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: () {
-                      if (_pasoActual == 0) return _buildSeleccionPerfil();
-                      if (_pasoActual == 1) return _buildDatosPersonales();
-                      if (_pasoActual == 2) return _buildDatosMedicos();
-                      if (_pasoActual == 3) return _buildDatosCuidador();
-                      return const SizedBox.shrink();
-                    }(),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: () {
+                        if (_pasoActual == 0) return _buildSeleccionPerfil();
+                        if (_pasoActual == 1) return _buildDatosPersonales();
+                        if (_pasoActual == 2) return _buildDatosMedicos();
+                        if (_pasoActual == 3) return _buildDatosCuidador();
+                        return const SizedBox.shrink();
+                      }(),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          
-          // Footer
-          Container(
-            width: double.infinity,
-            color: navDarkBlue,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 40),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, 
-              children: [
-                TextButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 14))),
-                const SizedBox(width: 24),
-                TextButton(onPressed: () {}, child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 14))),
-                const SizedBox(width: 24),
-                TextButton(onPressed: () {}, child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 14))),
-              ],
+            
+            // 👇 SOLUCIÓN AL OVERFLOW HORIZONTAL (Footer protegido con Scroll Horizontal)
+            Container(
+              width: double.infinity,
+              color: navDarkBlue,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center, 
+                  children: [
+                    TextButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 14))),
+                    const SizedBox(width: 24),
+                    TextButton(onPressed: () {}, child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 14))),
+                    const SizedBox(width: 24),
+                    TextButton(onPressed: () {}, child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 14))),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

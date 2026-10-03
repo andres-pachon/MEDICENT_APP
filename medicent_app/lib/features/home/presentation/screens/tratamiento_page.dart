@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:medicent_app/features/auth/presentation/providers/medicamento_provider.dart';
+import 'package:provider/provider.dart';
 import 'home_page.dart';
 import 'registrar_toma_page.dart';
 import '../../../auth/presentation/screens/login_page.dart';
-import '../../../auth/presentation/screens/landing_page.dart';
+import '../../../auth/presentation/screens/register_page.dart';
 
-// VARIABLE GLOBAL: Almacena los medicamentos para que otras vistas puedan leerlos
-List<Map<String, dynamic>> medicamentosGlobales = [];
 
 class TratamientoPage extends StatefulWidget {
   const TratamientoPage({super.key});
@@ -18,194 +18,91 @@ class _TratamientoPageState extends State<TratamientoPage> {
   final Color navDarkBlue = const Color(0xFF1B3B5A);
   final Color bgColor = const Color(0xFFF4F8FA);
 
-  void _mostrarFormularioAgregar() {
-    final formKey = GlobalKey<FormState>();
-    final nombreController = TextEditingController();
-    final dosisController = TextEditingController();
-    final duracionController = TextEditingController();
-    
-    String viaAdmin = 'Oral';
-    String frecuencia = 'Diario';
-    TimeOfDay? horaToma;
-    
-    // Lista para manejar los días seleccionados
-    final List<String> diasSemana = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-    List<String> diasSeleccionados = [];
+  @override
+  void initState() {
+    super.initState();
+    // Apenas carga la pantalla, consultamos los medicamentos desde MySQL Workbench
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MedicamentoProvider>(context, listen: false).cargarMedicamentos();
+    });
+  }
+
+  void _mostrarModalAgregar(BuildContext context) {
+    final TextEditingController _nombreController = TextEditingController();
+    final TextEditingController _dosisController = TextEditingController();
+    final TextEditingController _frecuenciaController = TextEditingController();
 
     showDialog(
       context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (context, setStateDialog) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              title: Text(
-                'Agregar Medicamento',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: navDarkBlue, fontWeight: FontWeight.bold, fontSize: 24),
-              ),
-              content: SingleChildScrollView(
-                child: SizedBox(
-                  width: 400,
-                  child: Form(
-                    key: formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _buildLabel('Nombre del medicamento'),
-                        TextFormField(
-                          controller: nombreController,
-                          decoration: const InputDecoration(hintText: 'Ej: Ibuprofeno', border: OutlineInputBorder()),
-                          validator: (value) => value!.isEmpty ? 'Requerido' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildLabel('Dosis'),
-                        TextFormField(
-                          controller: dosisController,
-                          decoration: const InputDecoration(hintText: 'Ej: 500mg, 10ml', border: OutlineInputBorder()),
-                          validator: (value) => value!.isEmpty ? 'Requerido' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildLabel('Vía de administración'),
-                        DropdownButtonFormField<String>(
-                          value: viaAdmin,
-                          decoration: const InputDecoration(border: OutlineInputBorder()),
-                          items: ['Oral', 'Intravenosa', 'Tópica', 'Inhalatoria']
-                              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                              .toList(),
-                          onChanged: (val) => setStateDialog(() => viaAdmin = val!),
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildLabel('Hora de toma'),
-                        InkWell(
-                          onTap: () async {
-                            final TimeOfDay? picked = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.now(),
-                            );
-                            if (picked != null) {
-                              setStateDialog(() => horaToma = picked);
-                            }
-                          },
-                          child: InputDecorator(
-                            decoration: const InputDecoration(border: OutlineInputBorder()),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(horaToma == null ? '--:-- ----' : horaToma!.format(context)),
-                                const Icon(Icons.access_time, size: 20),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildLabel('Duración del tratamiento'),
-                        TextFormField(
-                          controller: duracionController,
-                          decoration: const InputDecoration(hintText: 'Ej: 1 mes, 3 semanas', border: OutlineInputBorder()),
-                          validator: (value) => value!.isEmpty ? 'Requerido' : null,
-                        ),
-                        const SizedBox(height: 16),
-
-                        _buildLabel('Frecuencia'),
-                        DropdownButtonFormField<String>(
-                          value: frecuencia,
-                          decoration: const InputDecoration(border: OutlineInputBorder()),
-                          items: ['Diario', 'Días específicos', 'Cada 8 horas', 'Cada 12 horas']
-                              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                              .toList(),
-                          onChanged: (val) => setStateDialog(() {
-                            frecuencia = val!;
-                            if (frecuencia != 'Días específicos') diasSeleccionados.clear();
-                          }),
-                        ),
-                        
-                        // Aparece solo si selecciona "Días específicos"
-                        if (frecuencia == 'Días específicos') ...[
-                          const SizedBox(height: 16),
-                          _buildLabel('Selecciona los días'),
-                          Wrap(
-                            spacing: 8.0,
-                            runSpacing: 4.0,
-                            children: diasSemana.map((dia) {
-                              final isSelected = diasSeleccionados.contains(dia);
-                              return FilterChip(
-                                label: Text(dia, style: TextStyle(color: isSelected ? Colors.white : Colors.black)),
-                                selected: isSelected,
-                                selectedColor: navDarkBlue,
-                                checkmarkColor: Colors.white,
-                                onSelected: (bool selected) {
-                                  setStateDialog(() {
-                                    if (selected) {
-                                      diasSeleccionados.add(dia);
-                                    } else {
-                                      diasSeleccionados.remove(dia);
-                                    }
-                                  });
-                                },
-                              );
-                            }).toList(),
-                          ),
-                        ]
-                      ],
-                    ),
-                  ),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Registrar Medicamento'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _nombreController,
+                  decoration: const InputDecoration(labelText: 'Nombre del Medicamento (ej. prueba)'),
                 ),
-              ),
-              actionsPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              actions: [
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[600],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Cancelar'),
+                TextField(
+                  controller: _dosisController,
+                  decoration: const InputDecoration(labelText: 'Dosis/Concentración (ej. 500 o 1)'),
+                  keyboardType: TextInputType.number,
                 ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: navDarkBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: () {
-                    if (formKey.currentState!.validate()) {
-                      // Guardar en la variable global
-                      setState(() {
-                        medicamentosGlobales.add({
-                          'medicamento': nombreController.text,
-                          'dosis': dosisController.text,
-                          'frecuencia': frecuencia == 'Días específicos' && diasSeleccionados.isNotEmpty 
-                                        ? diasSeleccionados.join(', ') 
-                                        : frecuencia,
-                        });
-                      });
-                      Navigator.pop(context);
-                    }
-                  },
-                  child: const Text('Agregar'),
+                TextField(
+                  controller: _frecuenciaController,
+                  decoration: const InputDecoration(labelText: 'Frecuencia diaria (ej. 8)'),
+                  keyboardType: TextInputType.number,
                 ),
               ],
-            );
-          },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: navDarkBlue, foregroundColor: Colors.white),
+              onPressed: () async {
+                final nombre = _nombreController.text.trim();
+                final concentracion = double.tryParse(_dosisController.text) ?? 1.0;
+                final frecuencia = int.tryParse(_frecuenciaController.text) ?? 1;
+
+                if (nombre.isNotEmpty) {
+                  final medProvider = Provider.of<MedicamentoProvider>(context, listen: false);
+                  
+                  bool exito = await medProvider.agregarMedicamento(
+                    nombre: nombre,
+                    concentracion: concentracion,
+                    frecuenciaDiaria: frecuencia,
+                    fechaVencimiento: '2026-12-31', 
+                    idTratamiento: 1, 
+                    idTipoMedicamento: 1,
+                    idViaAdministracion: 1,
+                    idStock: 1,
+                  );
+
+                  if (mounted) {
+                    Navigator.pop(context);
+                    if (exito) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('¡Guardado en Workbench exitosamente!'), backgroundColor: Colors.green),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Error al guardar en el servidor'), backgroundColor: Colors.red),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text('Guardar'),
+            ),
+          ],
         );
       },
-    );
-  }
-
-  Widget _buildLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8.0),
-      child: Text(
-        text,
-        style: TextStyle(color: navDarkBlue, fontWeight: FontWeight.bold, fontSize: 16),
-      ),
     );
   }
 
@@ -222,128 +119,113 @@ class _TratamientoPageState extends State<TratamientoPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())),
-            child: const Text('Dashboard', style: TextStyle(color: Colors.white))
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text('Tratamiento', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text('Biomarcadores', style: TextStyle(color: Colors.white))
-          ),
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage())),
-            child: const Text('Cerrar sesión', style: TextStyle(color: Colors.white))
-          ),
-          const SizedBox(width: 20),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 30.0, horizontal: 20.0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 800),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.account_circle, size: 40, color: Colors.black),
-                          SizedBox(width: 12),
-                          Text('Admin Admin', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-
-                      const Text('Tratamiento', textAlign: TextAlign.center, style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      const Text('Medicamentos registrados', textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: Colors.black54)),
-                      const SizedBox(height: 30),
-
-                      // Tabla conectada a medicamentosGlobales
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: medicamentosGlobales.isEmpty
-                            ? const Padding(
-                                padding: EdgeInsets.all(24.0),
-                                child: Center(child: Text('No hay medicamentos registrados.', style: TextStyle(color: Colors.grey))),
-                              )
-                            : DataTable(
-                                headingRowColor: MaterialStateProperty.all(navDarkBlue),
-                                columns: const [
-                                  DataColumn(label: Expanded(child: Text('Medicamento', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center))),
-                                  DataColumn(label: Expanded(child: Text('Dosis', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center))),
-                                  DataColumn(label: Expanded(child: Text('Frecuencia diaria', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), textAlign: TextAlign.center))),
-                                ],
-                                rows: medicamentosGlobales.map((t) {
-                                  return DataRow(cells: [
-                                    DataCell(Center(child: Text(t['medicamento']))),
-                                    DataCell(Center(child: Text(t['dosis']))),
-                                    DataCell(Center(child: Text(t['frecuencia']))),
-                                  ]);
-                                }).toList(),
-                              ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: ElevatedButton.icon(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.black,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                          ),
-                          icon: const Icon(Icons.add_circle_outline),
-                          label: const Text('Agregar Medicamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                          onPressed: _mostrarFormularioAgregar,
-                        ),
-                      ),
-                    ],
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.55),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())),
+                    child: const Text('Dashboard', style: TextStyle(color: Colors.white)),
                   ),
-                ),
+                  TextButton(
+                    onPressed: () {}, // ⚠️ BOTÓN VACÍO: Ya estamos en Tratamiento
+                    child: const Text('Tratamiento', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RegistrarTomaPage())),
+                    child: const Text('Registrar Toma', style: TextStyle(color: Colors.white)),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const RegisterPage())),
+                    child: const Text('Registrarse', style: TextStyle(color: Colors.white)),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage())),
+                    child: const Text('Iniciar sesión', style: TextStyle(color: Colors.white)),
+                  ),
+                  const SizedBox(width: 10),
+                ],
               ),
             ),
           ),
-          
-          // Footer
-          Container(
-            width: double.infinity,
-            color: navDarkBlue,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 40),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), 
-                  child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 16))
-                ),
-                const SizedBox(width: 24),
-                TextButton(
-                  onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())), 
-                  child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 16))
-                ),
-                const SizedBox(width: 24),
-                TextButton(
-                  onPressed: () {}, 
-                  child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 16))
-                ),
-              ],
-            ),
-          ),
         ],
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Center(
+                child: Text(
+                  'Tratamiento',
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const Center(
+                child: Text(
+                  'Medicamentos registrados en la base de datos',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 30),
+
+              Expanded(
+                child: Consumer<MedicamentoProvider>(
+                  builder: (context, medProvider, child) {
+                    if (medProvider.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    final lista = medProvider.medicamentos;
+
+                    if (lista.isEmpty) {
+                      return const Center(
+                        child: Text('No hay medicamentos registrados en el sistema.'),
+                      );
+                    }
+
+                    return ListView.builder(
+                      itemCount: lista.length,
+                      itemBuilder: (context, index) {
+                        final item = lista[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(vertical: 6),
+                          child: ListTile(
+                            leading: const Icon(Icons.medication, color: Color(0xFF1B3B5A)),
+                            title: Text(item['nombre']?.toString() ?? 'Sin nombre', style: const TextStyle(fontWeight: FontWeight.bold)),
+                            subtitle: Text('Dosis: ${item['concentracion']} | Frecuencia: Cada ${item['frecuenciaDiaria']}h'),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              Center(
+                child: ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onPressed: () => _mostrarModalAgregar(context),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Agregar Medicamento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

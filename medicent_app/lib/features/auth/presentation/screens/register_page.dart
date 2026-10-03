@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-// IMPORTANTE: Ajusta esta ruta si completador_perfil_page.dart está en otra carpeta
+import 'package:provider/provider.dart'; 
+import '../../../auth/presentation/providers/auth_provider.dart'; 
 import '../../../home/presentation/screens/completar_perfil_page.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -13,6 +14,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _nombreController = TextEditingController();
   final _apellidoController = TextEditingController();
   final _documentoController = TextEditingController();
+  final _telefonoController = TextEditingController(); // <--- 1. NUEVO: Controlador para el teléfono
   final _fechaController = TextEditingController();
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
@@ -25,6 +27,19 @@ class _RegisterPageState extends State<RegisterPage> {
   final Color navDarkBlue = const Color(0xFF1B3B5A);
   final Color btnTeal = const Color(0xFF1E7B7D);
   final Color bgColor = const Color(0xFFF4F8FA);
+
+  @override
+  void dispose() {
+    _nombreController.dispose();
+    _apellidoController.dispose();
+    _documentoController.dispose();
+    _telefonoController.dispose(); // <--- Limpiamos el controlador
+    _fechaController.dispose();
+    _correoController.dispose();
+    _contrasenaController.dispose();
+    _confirmarController.dispose();
+    super.dispose();
+  }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -51,6 +66,18 @@ class _RegisterPageState extends State<RegisterPage> {
   Future<void> _handleSubmit() async {
     setState(() => _errorMessage = null);
 
+    // Validaciones locales
+    if (_nombreController.text.trim().isEmpty ||
+        _apellidoController.text.trim().isEmpty ||
+        _documentoController.text.trim().isEmpty ||
+        _telefonoController.text.trim().isEmpty ||
+        _fechaController.text.trim().isEmpty ||
+        _correoController.text.trim().isEmpty ||
+        _contrasenaController.text.trim().isEmpty) {
+      setState(() => _errorMessage = 'Por favor, complete todos los campos.');
+      return;
+    }
+
     if (_contrasenaController.text != _confirmarController.text) {
       setState(() => _errorMessage = 'Las contraseñas no coinciden.');
       return;
@@ -63,31 +90,36 @@ class _RegisterPageState extends State<RegisterPage> {
     setState(() => _isLoading = true);
 
     try {
-      final Map<String, dynamic> formData = {
-        "nombre": _nombreController.text.trim(),
-        "apellido": _apellidoController.text.trim(),
-        "correo": _correoController.text.trim(),
-        "password": _contrasenaController.text,
-        "idTipoDocumento": int.parse(_idTipoDocumento),
-        "documento": _documentoController.text.trim(),
-        "fechaNacimiento": _fechaController.text,
-      };
+      // Obtenemos el AuthProvider para disparar la petición real a Flask
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-      // Simulación de envío backend
-      await Future.delayed(const Duration(seconds: 1));
+      bool exito = await authProvider.register(
+        nombre: _nombreController.text.trim(),
+        apellido: _apellidoController.text.trim(),
+        documento: _documentoController.text.trim(),
+        correo: _correoController.text.trim(),
+        telefono: _telefonoController.text.trim(), // <--- Enviando el teléfono requerido por Flask
+        fechaNacimiento: _fechaController.text.trim(),
+        password: _contrasenaController.text,
+        idTipoDocumento: int.parse(_idTipoDocumento),
+      );
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('¡Registro exitoso! Por favor completa tu perfil.'), backgroundColor: Colors.green),
-        );
-        // REDIRECCIÓN A LA PANTALLA DE COMPLETAR PERFIL EN LUGAR DE CERRAR
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const CompletarPerfilPage()),
-        );
+        if (exito) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('¡Registro exitoso! Por favor completa tu perfil.'), backgroundColor: Colors.green),
+          );
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const CompletarPerfilPage()),
+          );
+        } else {
+          // Si Flask rechaza el registro (ej. correo ya existe), mostramos el error del servidor
+          setState(() => _errorMessage = authProvider.errorMessage ?? 'Error al registrarse.');
+        }
       }
     } catch (err) {
-      setState(() => _errorMessage = 'No se pudo registrar. Verifica que el backend esté corriendo.');
+      setState(() => _errorMessage = 'No se pudo conectar con el servidor. Verifica que Flask esté activo.');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -169,10 +201,18 @@ class _RegisterPageState extends State<RegisterPage> {
                         keyboardType: TextInputType.number,
                       ),
                       const SizedBox(height: 14),
+                      // --- CAMPO NUEVO: Teléfono requerido por Flask ---
+                      _buildInputLabel('TELÉFONO'),
+                      _buildTextField(
+                        controller: _telefonoController,
+                        hintText: 'Ingrese su número de teléfono',
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: 14),
                       _buildInputLabel('FECHA DE NACIMIENTO'),
                       _buildTextField(
                         controller: _fechaController,
-                        hintText: 'dd/mm/aaaa',
+                        hintText: 'aaaa-mm-dd',
                         readOnly: true,
                         onTap: () => _selectDate(context),
                         suffixIcon: const Icon(Icons.calendar_month_outlined, size: 20, color: Colors.black54),

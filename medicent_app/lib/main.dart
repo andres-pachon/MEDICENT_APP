@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:medicent_app/features/auth/presentation/providers/auth_provider.dart';
+import 'package:medicent_app/features/auth/presentation/providers/medicamento_provider.dart';
+import 'package:medicent_app/features/auth/presentation/providers/toma_provider.dart';
+import 'package:medicent_app/features/auth/presentation/screens/landing_page.dart';
 import 'package:provider/provider.dart';
-import 'features/auth/presentation/providers/auth_provider.dart';
-import 'features/home/presentation/screens/home_page.dart';
-import 'features/auth/presentation/screens/landing_page.dart';
+
 void main() {
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthProvider()..checkAuthStatus(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -17,12 +14,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Medicent',
-      theme: ThemeData(useMaterial3: true, colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal)),
-      home: authProvider.isAuthenticated ? const HomePage() : const LandingPage(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MedicamentoProvider()),
+        ChangeNotifierProvider(create: (_) => TomaProvider()),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Medicent',
+        home: const LandingPage(),
+      ),
     );
   }
 }

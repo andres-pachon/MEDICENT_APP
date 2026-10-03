@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:medicent_app/features/auth/presentation/providers/toma_provider.dart';
+import 'package:medicent_app/features/home/presentation/screens/registrar_toma_page.dart';
+import 'package:medicent_app/features/home/presentation/screens/tratamiento_page.dart';
+import 'package:medicent_app/features/home/presentation/screens/editar_perfil_page.dart';
 import 'package:provider/provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import 'biomarcadores_page.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -17,16 +22,18 @@ class _HomePageState extends State<HomePage> {
   final Color bgColor = const Color(0xFFF4F8FA);
 
   String _horaActual = '00:00';
-  bool _isLoadingTomas = true;
-  List<dynamic> _tomasHoy = [];
   Map<String, dynamic>? _proximaToma;
 
   @override
   void initState() {
     super.initState();
     _actualizarReloj();
-    // Simulamos la carga del dashboard igual que en tu versión web
     _cargarDatosDashboard();
+    
+    // 👇 Consultamos las tomas reales a la base de datos al abrir la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<TomaProvider>(context, listen: false).cargarTomas();
+    });
   }
 
   void _actualizarReloj() {
@@ -39,18 +46,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _cargarDatosDashboard() async {
-    // Aquí puedes conectar tus servicios de API para tomas de hoy y próxima toma
     await Future.delayed(const Duration(milliseconds: 500));
     setState(() {
-      _isLoadingTomas = false;
-      _tomasHoy = []; // Vacío por defecto tal como en tu maqueta
-      _proximaToma = null;
+      _proximaToma = null; // Mantenemos tu lógica original para la próxima toma
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    // USAMOS WATCH para que la pantalla detecte cuando el nombre se actualice
     final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
@@ -96,7 +99,6 @@ class _HomePageState extends State<HomePage> {
                           const Icon(Icons.account_circle, size: 40, color: Color(0xFF1D3B5E)),
                           const SizedBox(width: 12),
                           Text(
-                            // AQUÍ COLOCAMOS EL NOMBRE DINÁMICO
                             'Bienvenido, ${authProvider.nombreUsuario ?? "usuario"}',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: navDarkBlue),
                           ),
@@ -139,15 +141,30 @@ class _HomePageState extends State<HomePage> {
                   mainAxisSpacing: 12,
                   childAspectRatio: 2.5,
                   children: [
-                    _buildActionButton('Registrar Toma', () {}),
-                    _buildActionButton('Ver Tratamiento', () {}),
+                    _buildActionButton('Registrar Toma', () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const RegistrarTomaPage()),
+                      );
+                    }),
+                    _buildActionButton('Ver Tratamiento', () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const TratamientoPage()),
+                      );
+                    }),
                     _buildActionButton('Biomarcadores', () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const BiomarcadoresPage()),
                       );
                     }),
-                    _buildActionButton('Editar Perfil', () {}),
+                    _buildActionButton('Editar Perfil', () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const EditarPerfilPage()),
+                      );
+                    }),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -178,7 +195,7 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 30),
 
-                // 5. Sección de Medicamentos hoy
+                // 5. Sección de Medicamentos hoy (CONECTADA A MYSQL)
                 const Text(
                   'Medicamentos hoy',
                   style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
@@ -192,8 +209,23 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: const Color(0xFFE2E8F0)),
                   ),
-                  child: _tomasHoy.isEmpty
-                      ? const Center(
+                  child: Consumer<TomaProvider>(
+                    builder: (context, tomaProvider, child) {
+                      // Mientras carga, mostramos el círculo de progreso
+                      if (tomaProvider.isLoading) {
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(12.0),
+                            child: CircularProgressIndicator(),
+                          ),
+                        );
+                      }
+
+                      final lista = tomaProvider.tomas;
+
+                      // Si la base de datos no tiene tomas, mostramos el aviso original
+                      if (lista.isEmpty) {
+                        return const Center(
                           child: Padding(
                             padding: EdgeInsets.all(12.0),
                             child: Text(
@@ -201,10 +233,25 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(color: Colors.black54),
                             ),
                           ),
-                        )
-                      : Column(
-                          children: _tomasHoy.map((toma) => Text(toma.toString())).toList(),
-                        ),
+                        );
+                      }
+
+                      
+                      return Column(
+                        children: lista.map((toma) {
+                          return ListTile(
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 4),
+                            leading: const Icon(Icons.medication, color: Color(0xFF1B3B5A), size: 32),
+                            title: Text(
+                              'Hora: ${toma['hora'] ?? '--'}',
+                              style: const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text('Dosis: ${toma['dosis'] ?? '--'} | Estado: ${toma['estado'] ?? ''}'),
+                          );
+                        }).toList(),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),

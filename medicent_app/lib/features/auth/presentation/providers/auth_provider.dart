@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthProvider with ChangeNotifier {
   final _storage = const FlutterSecureStorage();
-  final String baseUrl = 'http://127.0.0.1:5000/api'; 
+  final String baseUrl = 'http://127.0.0.1:5000/api';
 
   String? _token;
   String? nombreUsuario; 
@@ -35,12 +35,8 @@ class AuthProvider with ChangeNotifier {
       final data = jsonDecode(response.body);
 
       if (response.statusCode == 200) {
-        
-        // --- AQUÍ ESTÁ LA CLAVE ---
-        // Buscamos la llave exactamente con el nombre que le pusimos en Python
         final tokenRecibido = data['access_token'] ?? data['token'];
         
-        // ESTE PRINT NOS DIRÁ SI FLUTTER SÍ ESTÁ RECIBIENDO EL TOKEN
         print("🔑 Token recibido del servidor: $tokenRecibido"); 
 
         if (tokenRecibido != null) {
@@ -60,6 +56,58 @@ class AuthProvider with ChangeNotifier {
         return false;
       }
     } catch (e) {
+      errorMessage = 'Error de conexión con el servidor.';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> register({
+    required String nombre,
+    required String apellido,
+    required String documento,
+    required String correo,
+    required String telefono,
+    required String fechaNacimiento,
+    required String password,
+    required int idTipoDocumento,
+  }) async {
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      final cuerpoJson = jsonEncode({
+        'nombre': nombre,
+        'apellido': apellido,
+        'documento': documento,
+        'correo': correo,
+        'telefono': telefono,
+        'fechaNacimiento': fechaNacimiento,
+        'password': password,
+        'idTipoDocumento': idTipoDocumento,
+      });
+
+      print("🚀 ENVIANDO REGISTRO A FLASK: $cuerpoJson");
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: cuerpoJson,
+      );
+
+      print("📥 RESPUESTA DE REGISTRO FLASK: ${response.statusCode} - ${response.body}");
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201) {
+        return true;
+      } else {
+        errorMessage = data['error'] ?? data['message'] ?? 'Error al registrar usuario';
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      print("❌ ERROR DE RED EN REGISTRO: $e");
       errorMessage = 'Error de conexión con el servidor.';
       notifyListeners();
       return false;

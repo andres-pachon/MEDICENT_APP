@@ -46,89 +46,88 @@ class PerfilCuidadorPage extends StatelessWidget {
           const SizedBox(width: 20),
         ],
       ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Título
-          Padding(
-            padding: const EdgeInsets.only(left: 24.0, top: 20.0),
-            child: Text(
-              'Mi Perfil de Cuidador',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
-          ),
-          
-          Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Avatar Circle
-                  Center(
-                    child: Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: btnTeal,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2),
-                        ],
-                      ),
-                      child: const Icon(Icons.person, size: 60, color: Color(0xFF6B21A8)), // Color púrpura del ícono como en la imagen
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // Info Rows
-                  _buildInfoRow('Nombre', 'Carlos Mendoza'),
-                  _buildInfoRow('Experiencia', '5 años en enfermería geriátrica'),
-                  _buildInfoRow('Teléfono', '315 987 6543'),
-                  _buildInfoRow('Estado', 'Disponible'),
-
-                  const SizedBox(height: 30),
-                  
-                  // Botón Editar
-                  Padding(
-                    padding: const EdgeInsets.only(left: 24.0),
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: btnTeal,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                        ),
-                        onPressed: () {
-                          // Acción de editar
-                        },
-                        child: const Text('Editar Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                  ),
-                ],
+      body: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(left: 24.0, top: 20.0),
+              child: Text(
+                'Mi Perfil de Cuidador',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
               ),
             ),
-          ),
-          
-          // Footer
-          Container(
-            width: double.infinity,
-            color: navDarkBlue,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 40),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                TextButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 14))),
-                const SizedBox(width: 24),
-                TextButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())), child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 14))),
-                const SizedBox(width: 24),
-                TextButton(onPressed: () {}, child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 14))),
-              ],
+            
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    Center(
+                      child: Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: btnTeal,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(color: Colors.black12, blurRadius: 10, spreadRadius: 2),
+                          ],
+                        ),
+                        child: const Icon(Icons.person, size: 60, color: Color(0xFF6B21A8)), 
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+
+                    _buildInfoRow('Nombre', 'Carlos Mendoza'),
+                    _buildInfoRow('Experiencia', '5 años en enfermería geriátrica'),
+                    _buildInfoRow('Teléfono', '315 987 6543'),
+                    _buildInfoRow('Estado', 'Disponible'),
+
+                    const SizedBox(height: 30),
+                    
+                    Padding(
+                      padding: const EdgeInsets.only(left: 24.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: btnTeal,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                          ),
+                          onPressed: () {},
+                          child: const Text('Editar Perfil', style: TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ),
-        ],
+            
+            // 👇 Footer corregido para evitar overflow horizontal
+            Container(
+              width: double.infinity,
+              color: navDarkBlue,
+              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 14))),
+                    const SizedBox(width: 24),
+                    TextButton(onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())), child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 14))),
+                    const SizedBox(width: 24),
+                    TextButton(onPressed: () {}, child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 14))),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

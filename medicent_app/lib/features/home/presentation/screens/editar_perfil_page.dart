@@ -14,7 +14,6 @@ class EditarPerfilPage extends StatefulWidget {
 class _EditarPerfilPageState extends State<EditarPerfilPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Controladores con los datos simulados de tu maqueta
   final TextEditingController _nombreController = TextEditingController(text: 'Admin Admin');
   final TextEditingController _correoController = TextEditingController(text: 'adminmedicent@gmail.com');
   final TextEditingController _telefonoController = TextEditingController();
@@ -31,7 +30,6 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
     super.dispose();
   }
 
-  // Widget reutilizable para los títulos de los inputs
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, top: 16.0),
@@ -47,7 +45,6 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
     );
   }
 
-  // Widget reutilizable para los campos de texto con soporte de solo lectura
   Widget _buildTextField(TextEditingController controller, {String? hint, TextInputType? keyboardType, bool readOnly = false}) {
     return TextFormField(
       controller: controller,
@@ -80,6 +77,7 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      resizeToAvoidBottomInset: true, // Permite el scroll con el teclado
       appBar: AppBar(
         backgroundColor: navDarkBlue,
         elevation: 0,
@@ -89,126 +87,126 @@ class _EditarPerfilPageState extends State<EditarPerfilPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())),
-            child: const Text('Dashboard', style: TextStyle(color: Colors.white))
+          // Menú responsivo
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.55),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())),
+                    child: const Text('Dashboard', style: TextStyle(color: Colors.white))
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TratamientoPage())),
+                    child: const Text('Tratamiento', style: TextStyle(color: Colors.white))
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: const Text('Biomarcadores', style: TextStyle(color: Colors.white))
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage())),
+                    child: const Text('Cerrar sesión', style: TextStyle(color: Colors.white))
+                  ),
+                  const SizedBox(width: 10),
+                ],
+              ),
+            ),
           ),
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const TratamientoPage())),
-            child: const Text('Tratamiento', style: TextStyle(color: Colors.white))
-          ),
-          TextButton(
-            onPressed: () {},
-            child: const Text('Biomarcadores', style: TextStyle(color: Colors.white))
-          ),
-          TextButton(
-            onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LoginPage())),
-            child: const Text('Cerrar sesión', style: TextStyle(color: Colors.white))
-          ),
-          const SizedBox(width: 20),
         ],
       ),
-      body: Column(
-        children: [
-          // Área principal (Formulario de Perfil)
-          Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 500),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Center(
-                          child: Text(
-                            'Editar Perfil',
-                            style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-
-                        _buildLabel('NOMBRE COMPLETO'),
-                        _buildTextField(_nombreController, readOnly: true),
-
-                        _buildLabel('CORREO ELECTRÓNICO'),
-                        _buildTextField(_correoController, keyboardType: TextInputType.emailAddress),
-
-                        _buildLabel('TELÉFONO DE CONTACTO'),
-                        _buildTextField(_telefonoController, keyboardType: TextInputType.phone),
-
-                        _buildLabel('EDAD'),
-                        _buildTextField(_edadController, keyboardType: TextInputType.number), // <--- Le quitamos el readOnly
-
-                        _buildLabel('CONTACTO DE EMERGENCIA'),
-                        _buildTextField(_emergenciaController, hint: 'Ej: Maria Perez - 3123456789', readOnly: true),
-
-                        const SizedBox(height: 40),
-
-                        // Botón Guardar Cambios
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: btnTeal,
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 18),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minHeight: MediaQuery.of(context).size.height - kToolbarHeight - MediaQuery.of(context).padding.top,
+            ),
+            child: IntrinsicHeight(
+              child: Column(
+                children: [
+                  // Área principal
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40.0, horizontal: 20.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Center(
+                              child: Text('Editar Perfil', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+                            ),
+                            const SizedBox(height: 20),
+                            _buildLabel('NOMBRE COMPLETO'),
+                            _buildTextField(_nombreController, readOnly: true),
+                            _buildLabel('CORREO ELECTRÓNICO'),
+                            _buildTextField(_correoController, keyboardType: TextInputType.emailAddress),
+                            _buildLabel('TELÉFONO DE CONTACTO'),
+                            _buildTextField(_telefonoController, keyboardType: TextInputType.phone),
+                            _buildLabel('EDAD'),
+                            _buildTextField(_edadController, keyboardType: TextInputType.number),
+                            _buildLabel('CONTACTO DE EMERGENCIA'),
+                            _buildTextField(_emergenciaController, hint: 'Ej: Maria Perez - 3123456789', readOnly: true),
+                            const SizedBox(height: 40),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: btnTeal,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 18),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Perfil actualizado exitosamente', style: TextStyle(fontWeight: FontWeight.bold)),
+                                      backgroundColor: Colors.green,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Guardar Cambios', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                               ),
                             ),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Perfil actualizado exitosamente', style: TextStyle(fontWeight: FontWeight.bold)),
-                                  backgroundColor: Colors.green,
-                                  behavior: SnackBarBehavior.floating,
-                                ),
-                              );
-                              Navigator.pop(context); // Regresa al Dashboard
-                            },
-                            child: const Text(
-                              'Guardar Cambios',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
-                          ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Footer responsivo
+                  Container(
+                    width: double.infinity,
+                    color: navDarkBlue,
+                    padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                    child: Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 20,
+                      runSpacing: 10,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), 
+                          child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 16))
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())), 
+                          child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 16))
+                        ),
+                        TextButton(
+                          onPressed: () {}, 
+                          child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 16))
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
-          
-          // Footer
-          Container(
-            width: double.infinity,
-            color: navDarkBlue,
-            padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 40),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const LandingPage())), 
-                  child: const Text('Inicio', style: TextStyle(color: Colors.white, fontSize: 16))
-                ),
-                const SizedBox(width: 24),
-                TextButton(
-                  onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage())), 
-                  child: const Text('Dashboard', style: TextStyle(color: Colors.white, fontSize: 16))
-                ),
-                const SizedBox(width: 24),
-                TextButton(
-                  onPressed: () {}, 
-                  child: const Text('Contacto', style: TextStyle(color: Colors.white, fontSize: 16))
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
